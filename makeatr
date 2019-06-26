@@ -1,0 +1,4 @@
+ROOT_PATH=/home/bruce/local_install
+OBJS=atrinet_classfication.cpp
+
+g++ -o atr_cpu $OBJS -I /usr/local/cuda/include/ -I /usr/local/include/ -I $ROOT_PATH/include/ -I $ROOT_PATH/caffe/include -I $ROOT_PATH/caffe/.build_release/src/ -L $ROOT_PATH/caffe/.build_release/lib/ -L $ROOT_PATH/caffe/.build/lib/ -L $ROOT_PATH/caffe/lib/ -lcaffe -lglog -lprotobuf -lboost_system -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lstdc++ -lopencv_core

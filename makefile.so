@@ -1,0 +1,10 @@
+#How to compile so: g++ -shared -fPIC -o libname.so add.cc sub.cc mul.cc div.cc
+LIB_OBJS = max.cc
+LIB_CFLAGS = -shared -fPIC
+LIB_NAME = libmax.so
+CC = g++
+CFLAGS = -d -g
+default:$(OBJS)
+	$(CC) $(LIB_CFLAGS) -o $(LIB_NAME) $(LIB_OBJS)
+clean:
+	rm $(LIB_NAME)

@@ -1,0 +1,14 @@
+net: "./examples/bubble/vggnet19_train_test.prototxt"
+test_iter: 350
+test_interval: 500
+base_lr: 0.0001
+momentum: 0.9
+weight_decay: 0.0005
+lr_policy: "inv"
+gamma: 0.0001
+power: 0.75
+display: 500
+max_iter: 500000
+snapshot: 20000
+snapshot_prefix: "./output/bubble/vggnet19"
+solver_mode: GPU

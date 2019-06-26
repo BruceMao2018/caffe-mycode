@@ -1,0 +1,54 @@
+1, RNG 类
+	RNG类是OPENCV中随机数生成器
+
+	随机类RNG：计算机的伪随机数是由随机种子根据一定的计算方法计算出来的数值，所以只要计算方法一定，随机种子一定，那么产生的随机数就是固定的。
+
+    RNG rng(12345)
+	
+	如果想改变成随机生成的数，使用下面的方法：
+///////////////////////////////////////////////
+include<iostream>
+#include <opencv2/highgui/highgui.hpp>
+#include <ctime>
+
+using namespace cv;
+using namespace std;
+
+RNG rng((unsigned)time(NULL));
+
+int main(void)
+{
+for (int i = 0; i < 10; i++) {
+int a = rng.uniform(1, 100);//由随机种子time生成的1-100之间的任意整数
+cout << a << endl;
+}
+return 0;
+}
+///////////////////////////////////////////////
+
+	RNG 类的函数
+	RNG::uniform
+	int  RNG::(int a,int b)
+	float  RNG::uniform(float a,float b)
+	double RNG::uniform(double a,double b)
+
+原型:
+class CV_EXPORTS RotatedRect
+{
+public:
+    //! various constructors
+    RotatedRect();
+    RotatedRect(const Point2f& center, const Size2f& size, float angle);
+    RotatedRect(const CvBox2D& box);
+ 
+    //! returns 4 vertices of the rectangle
+    void points(Point2f pts[]) const;
+    //! returns the minimal up-right rectangle containing the rotated rectangle
+    Rect boundingRect() const;
+    //! conversion to the old-style CvBox2D structure
+    operator CvBox2D() const;
+ 
+    Point2f center; //< the rectangle mass center
+    Size2f size;    //< width and height of the rectangle
+    float angle;    //< the rotation angle. When the angle is 0, 90, 180, 270 etc., the rectangle becomes an up-right rectangle.
+};

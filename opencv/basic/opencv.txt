@@ -1,0 +1,480 @@
+typedef Vec<uchar, 2> Vec2b;
+typedef Vec<uchar, 3> Vec3b;
+typedef Vec<uchar, 4> Vec4b;
+typedef Vec<short, 2> Vec2s;
+typedef Vec<short, 3> Vec3s;
+typedef Vec<short, 4> Vec4s;
+typedef Vec<int, 2> Vec2i;
+typedef Vec<int, 3> Vec3i;
+typedef Vec<int, 4> Vec4i;
+typedef Vec<float, 2> Vec2f;
+typedef Vec<float, 3> Vec3f;
+typedef Vec<float, 4> Vec4f;
+typedef Vec<float, 6> Vec6f;
+
+
+
+opencv 基本数据结构:
+
+	Mat 类
+		构造函数 cv::Mat::Mat(Size size,int type )
+			 cv::Mat::Mat(int ndims,const int *  sizes,int type,const Scalar& s)
+		at成员函数
+			int elem = img.at<int>(0, 0);
+		channels函数
+			int cv::Mat::channels   ()  const
+		clone函数
+			Mat cv::Mat::clone()    const
+		convertTo函数
+			void cv::Mat::convertTo(OutputArray m,int rtype,double alpha = 1,double beta = 0)   const
+				从八位无符号数到32位浮点型的转换：
+					Mat image = imread("test.png",IMREAD_COLOR);
+					image.convertTo(CV_32FC3)；
+		copyTo函数
+			void cv::Mat::copyTo(OutputArray    m)  const
+		create函数 - 分配矩阵的存储单元，一般和默认构造函数配合使用
+			void cv::Mat::create(int    rows,int cols,int type)
+		depth函数 - 返回图像深度，即矩阵元素的存储方式
+			int cv::Mat::depth()    const
+		diag函数 - 提取矩阵的对角元素
+			Mat cv::Mat::diag(int   d = 0)  const
+		mul函数 - 矩阵的乘法
+			MatExpr cv::Mat::mul(InputArray m,double scale = 1 )    const
+		inv函数 - 求逆矩阵
+			MatExpr cv::Mat::inv(int    method = DECOMP_LU) const
+		t函数 - 求转置矩阵
+			MatExpr cv::Mat::t() const
+		total函数 - 返回矩阵的元素总个数
+			size_t cv::Mat::total() const
+	成员变量:
+		int cv::Mat::cols; //返回矩阵的列数
+		int cv::Mat::rows // 返回矩阵行数
+		uchar* cv::Mat::data // 指向矩阵的数据单元的指针
+		int cv::Mat::dims // 返回矩阵维度，该维度≥2
+		MatSize cv::Mat::size // 返回矩阵大小
+
+
+	DataType : 将C++数据类型转换为对应的opencv数据类型
+		enum { CV_8U=0, CV_8S=1, CV_16U=2, CV_16S=3, CV_32S=4, CV_32F=5, CV_64F=6 };
+
+	Point_  二维点坐标(x,y)
+
+		typedef Point_<int> Point2i;
+		typedef Point2i Point;
+		typedef Point_<float> Point2f;
+		typedef Point_<double> Point2d;
+
+	Point3_ 3维点坐标(x,y,z)
+
+		typedef Point3_<int> Point3i;
+		typedef Point3_<float> Point3f;
+		typedef Point3_<double> Point3d;
+
+	Size_  尺寸(width, height)
+
+		typedef Size_<int> Size2i;
+		typedef Size2i Size;
+		typedef Size_<float> Size2f;
+
+	Rect_  矩形区域(x,y,width,height) ，(x,y)左上角坐标, 范围[x, x + width), [y, y + height)
+
+		rect = rect ± point //矩形偏移(shifting a rectangle by a certain offset)
+		rect = rect ± size //改变大小(expanding or shrinking a rectangle by a certain amount)
+		rect += point, rect -= point, rect += size, rect -= size //(augmenting operations)
+		rect = rect1 & rect2 //矩形交集(rectangle intersection)
+		rect = rect1 | rect2 //包含r1r2的最小矩形(minimum area rectangle containing rect2 and rect3 )
+		rect &= rect1, rect |= rect1 //(and the corresponding augmenting operations)
+		rect == rect1, rect != rect1 //(rectangle comparison)
+
+
+	RotatedRect  旋转矩形
+
+		1.  Opencv采用通用的图像坐标系，左上角为原点O(0,0)，X轴向右递增，Y轴向下递增，单位为像素。
+		2. 矩形4个顶点位置的确定，是理解其它各变量的基础，其中p[0]点是关键。
+		顶点p[0]的位置可以这样理解：
+      			ⓐ 如果没有对边与Y轴平行，则Y坐标最大的点为p[0]点，如矩形(2)(3)(4)；
+
+			ⓑ 如果有对边与Y轴平等，则有两个Y坐标最大的点，此时，取左侧的点为p[0]点，如矩形(1)。
+		3. p[0]~p[3]按顺时针次序依次排列。
+		4. p[0]到p[3]之间的距离宽width，其邻边为高height。
+		5. 角度angle以穿过p[0]，且平行于X轴的直线为始边，按逆时针方向旋转到宽边p[0]p[3]所经过的角度， 取负值，取值范围为(-90, 0]。
+		6. 中心点center为矩形对角线的交点
+
+		RotatedRect::RotatedRect(const Point2f& center, const Size2f& size, float angle)// 中心点（不是左上角坐标），尺寸，旋转角度
+		RotatedRect rRect = RotatedRect(Point2f(100,100), Size2f(100,50), 30);
+
+		函数原型:
+			class CV_EXPORTS RotatedRect
+			{
+			public:
+				//! various constructors
+				RotatedRect();
+				RotatedRect(const Point2f& center, const Size2f& size, float angle);
+				RotatedRect(const CvBox2D& box);
+ 
+				//! returns 4 vertices of the rectangle
+				void points(Point2f pts[]) const;
+				//! returns the minimal up-right rectangle containing the rotated rectangle
+				Rect boundingRect() const;
+				//! conversion to the old-style CvBox2D structure
+				operator CvBox2D() const;
+ 
+				Point2f center; //< the rectangle mass center
+				Size2f size;    //< width and height of the rectangle
+				float angle;    //< the rotation angle. When the angle is 0, 90, 180, 270 etc., the rectangle becomes an up-right rectangle.
+			};
+
+	Matx 小矩阵
+
+		template<typename_Tp, int m, int n> class Matx {...};
+		typedef Matx<float, 1, 2> Matx12f;
+		typedef Matx<double, 1, 2> Matx12d;
+		...
+		typedef Matx<float, 1, 6> Matx16f;
+		typedef Matx<double, 1, 6> Matx16d;
+		typedef Matx<float, 2, 1> Matx21f;
+		typedef Matx<double, 2, 1> Matx21d;
+		...
+		typedef Matx<float, 6, 1> Matx61f;
+		typedef Matx<double, 6, 1> Matx61d;
+		typedef Matx<float, 2, 2> Matx22f;
+		typedef Matx<double, 2, 2> Matx22d;
+		...
+		typedef Matx<float, 6, 6> Matx66f;
+		typedef Matx<double, 6, 6> Matx66d;
+
+		Matx33f m(1, 2, 3, 4, 5, 6, 7, 8, 9);
+		cout << sum(Mat(m*m.t())) << endl;//Matx转化为Mat
+
+	Vec  短向量，基于Matx
+
+		template<typename_Tp, int n> class Vec : public Matx<_Tp, n, 1> {...};
+		typedef Vec<uchar, 2> Vec2b;
+		typedef Vec<uchar, 3> Vec3b;
+		typedef Vec<uchar, 4> Vec4b;
+		typedef Vec<short, 2> Vec2s;
+		typedef Vec<short, 3> Vec3s;
+		typedef Vec<short, 4> Vec4s;
+		typedef Vec<int, 2> Vec2i;
+		typedef Vec<int, 3> Vec3i;
+		typedef Vec<int, 4> Vec4i;
+		typedef Vec<float, 2> Vec2f;
+		typedef Vec<float, 3> Vec3f;
+		typedef Vec<float, 4> Vec4f;
+		typedef Vec<float, 6> Vec6f;
+		typedef Vec<double, 2> Vec2d;
+		typedef Vec<double, 3> Vec3d;
+		typedef Vec<double, 4> Vec4d;
+		typedef Vec<double, 6> Vec6d;
+
+	Scalar_  四维向量
+
+		template<typename_Tp> class Scalar_: public Vec<_Tp, 4> { ... };
+		typedef Scalar_<double> Scalar;
+
+	Range 范围，（start, end）
+
+		Mat m(300,300,CV32F);
+		Mat part = m(Range::all(), Range(20, 200)); // 相当于matlab的m(:, 20 : 199)
+
+ 	Mat 矩阵结构
+
+    		M.data  数据区域的指针
+		M.dims  矩阵维度
+		M.sizes  维度
+		M.elemSize()  每个元素占的字节空间大小，与元素类型相关，如CV_8U
+		M.step[]  用来计算元素地址， M.step[i] 表示所有比i大的维度所占空间大小
+
+		M.step[i] >= M.step[i+1]*M.sizes[i+1]; //这里大于是因为数据空间可能有空白
+		addr(M(i(0),...,i(M.dims−1))) = M.data + M.step[0] ∗ i(0)+ M.step[1] ∗ i(1)+ ... + M.step[M.dims − 1] ∗ i(M.dims−1)
+
+
+	创建特殊矩阵：
+
+		diag
+		ones
+		zeros 
+		eye
+
+	属性相关：
+
+		rows
+		cols
+		begin
+		end
+		at
+		size
+		depth
+		type
+		elemSize
+		total
+
+	矩阵操作：
+
+		t
+		inv
+		mul
+		cross
+		dot
+		reshape
+		resize
+		reserve
+		push_back
+		pop_back
+
+	赋值相关：
+
+		clone
+		copyTo
+		convertTo
+		assignTo
+		setTo
+
+	line 函数的用法
+		函数原型 line(Mat& img, Point pt1, Point pt2, const Scalar& color, int thickness=1, int lineType=8, int shift=0)
+			第一个参数img：要划的线所在的图像;
+			第二个参数pt1：直线起点
+			第三个参数pt2：直线终点
+			第四个参数color：直线的颜色 e.g:Scalor(0,0,255)
+			第五个参数thickness=1：线条粗细
+			第六个参数line_type=8, 
+			8 (or 0) - 8-connected line（8邻接)连接 线。
+			4 - 4-connected line(4邻接)连接线。
+			CV_AA - antialiased 线条。
+			第七个参数：坐标点的小数点位数
+
+	绘制矩形rectangle
+		rectangle( Mat* img, Point pt1, Point pt2, Scalar color,
+                  int thickness=1, int line_type=8, int shift=0 )
+			img 图像.
+			pt1 矩形的一个顶点。
+			pt2 矩形对角线上的另一个顶点
+			color 线条颜色 (RGB) 或亮度（灰度图像 ）(grayscale image）。
+			thickness 组成矩形的线条的粗细程度。取负值时（如 CV_FILLED）函数绘制填充了色彩的矩形。
+			line_type 线条的类型。见cvLine的描述
+			shift 坐标点的小数点位数
+
+	Rect
+		Rect rect（x,y,_width,height） // 注意后面两个数值 //一个image: _width=image.cols height=image.height 
+		rect.area(); //返回矩形面积 
+		rect.tl(); // top-left corner, 返回值为Point_<Tp>类型 
+		rect.br(); // bottom-right corner , 返回值为Point_<Tp>类型 
+		rect.contains(Point(x, y)); //Rect 是否包含Point ,返回bool类型 
+		recta & rectb //求交集,经常用来防止访问溢出
+
+	cvtColor
+		cvtColor(srcImage, dstImage, CV_RGB2BGR);
+
+	Ellipse函数的用法
+		函数原型：void ellipse(Mat&img, Point center, Size axes, double angle, double startAngle, 
+				double endAngle, const Scalar&color, int thickness=1, int lineType=8, int shift=0)
+
+			img ：画布容器
+			center：椭圆中心
+			axes :大小位于该矩形中
+			angle：椭圆的旋转角度
+			startangle：开始弧度
+			endAngle：结束弧度
+			color ：图形颜色
+			thickness ：线宽
+			lineType ：线型
+			shift ：圆心坐标点和数轴的精度
+
+	Circle 函数的用法
+		函数原型 void circle(Mat& img, Point center, int radius, const Scalar& color, intthickness=1, int lineType=8, int shift=0)
+			img: 将要画圆的图像；
+			center: 圆心；
+			radius: 半径；
+			color: 圆的颜色；
+			thickness: 如果值是正，圆外轮廓的厚度,如果值是负，表示要绘制一个填充圆；
+			lineType:线类型；
+			shift ：圆心坐标点和数轴的精度
+
+	RNG
+		RNG是opencv中的一个产生伪随机数的类,如果随机种子固定，则每次产生的随机数固定，如果种子变化，则每次随机数变化，实际工作中为了得到不同的随机数，一般使用时间函数作为随机种子来获取随机数
+	RNG rng1((unsigned)time(NULL));// #include <ctime>
+		int a = rng1.uniform(1, 100);//1-100之间的随机整数
+
+	仿射变换:
+		函数原型 void warpAffine(InputArray src,OutputArray dst, InputArray M, Size dsize, int flags=INTER_LINEAR, 
+								intborderMode=BORDER_CONSTANT, const Scalar& borderValue=Scalar())
+			第一个参数，InputArray类型的src，输入图像，即源图像，填Mat类的对象即可。
+			第二个参数，OutputArray类型的dst，函数调用后的运算结果存在这里，需和源图片有一样的尺寸和类型。
+			第三个参数，InputArray类型的M，2×3的变换矩阵。
+			第四个参数，Size类型的dsize，表示输出图像的尺寸。
+			第五个参数，int类型的flags，插值方法的标识符。此参数有默认值INTER_LINEAR(线性插值)，可选的插值方式如下：
+
+				INTER_NEAREST - 最近邻插值
+				INTER_LINEAR - 线性插值（默认值）
+				INTER_AREA - 区域插值
+				INTER_CUBIC –三次样条插值
+				INTER_LANCZOS4 -Lanczos插值
+				CV_WARP_FILL_OUTLIERS - 填充所有输出图像的象素。如果部分象素落在输入图像的边界外，那么它们的值设定为 fillval.
+				CV_WARP_INVERSE_MAP –表示M为输出图像到输入图像的反变换，即 。因此可以直接用来做象素插值。否则, warpAffine函数从M矩阵得到反变换。
+			第六个参数，int类型的borderMode，边界像素模式，默认值为BORDER_CONSTANT。
+			第七个参数，const Scalar&类型的borderValue，在恒定的边界情况下取的值，默认值为Scalar()，即0。
+
+	二维旋转变换矩阵
+		函数原型 Mat getRotationMatrix2D(Point2fcenter, double angle, double scale)
+			第一个参数，Point2f类型的center，表示源图像的旋转中心。
+			第二个参数，double类型的angle，旋转角度。角度为正值表示向逆时针旋转（坐标原点是左上角）。
+			第三个参数，double类型的scale，缩放系数。
+
+	threshold函数 - 图像的二值化
+		图像的二值化就是将图像上的像素点的灰度值设置为0或255，这样将使整个图像呈现出明显的黑白效果。在数字图像处理中，二值图像占有非常重要的地位，图像的二值化使图像中数据量大为减少，从而能凸显出目标的轮廓
+		double cv::threshold( InputArray src, OutputArray dst, double thresh, double maxval, int type)
+			src：源图像，可以为8位的灰度图，也可以为32位的彩色图像。（两者由区别）
+			dst：输出图像
+			thresh：当前阈值
+			maxval：dst图像中最大值
+			type：阈值类型，可以具体类型如下：
+				编号 	阈值类型枚举 	
+				1 	THRESH_BINARY 	
+				2 	THRESH_BINARY_INV 	
+				3 	THRESH_TRUNC 	
+				4 	THRESH_TOZERO 	
+				5 	THRESH_TOZERO_INV 	
+				6 	THRESH_MASK 	//不支持
+				7 	THRESH_OTSU 	//不支持32位
+				8 	THRESH_TRIANGLE  //不支持32位
+				THRESH BINARY：二进制阈值，。在运用该阈值类型的时候，先要选定一个特定的阈值量，比如：125，这样，新的阈值产生规则可以解释为大于125的像素点的灰度值设定为最大值255，灰度值小于125的像素点的灰度值设定为0。  (value>threshold?255:0)
+       				THRESH BINARY INV：反二进制阈值。设定一个初始阈值如125，则大于125的设定为0，而小于该阈值的设定为255。  (value>threshold?0:255)
+
+       				THRESH TRUNC：截断阈值。同样首先需要选定一个阈值，图像中大于该阈值的像素点被设定为该阈值，小于该阈值的保持不变。（例如：阈值选取为125，那小于125的阈值不改变，大于125的灰度值（230）的像素点就设定为该阈值）。   (value>threshold?threshold:value)
+
+        			THRESH TOZERO:阈值化为0。先选定一个阈值，像素点的灰度值大于该阈值的不进行任何改变；像素点的灰度值小于该阈值的，其灰度值全部变为0。   (value>threshold?value:0)
+
+        			THRESH TOZERO INV：反阈值化为0。原理类似于0阈值，但是在对图像做处理的时候相反，即：像素点的灰度值小于该阈值的不进行任何改变，而大于该阈值的部分，其灰度值全部变为0。  (value>threshold?0:value)
+
+	自适应阈值化函数 - adaptiveThreshold
+		图像阈值化的一般目的是从灰度图像中分享目标区域和背景区域，然而仅仅通过设定固定阈值(固定阈值的求解可点此查看我写的博文)很难达到理想的分割效果。在实际应用中，我们可以通过某个像素的邻域以某种方法确定这个像素应该具有的阈值，进而保证图像中各个像素的阈值会随着周期围邻域块的变化而变化。在灰度图像中，灰度值变化明显的区域往往是物体的轮廓，所以将图像分成一小块一小块的去计算阈值往往会得出图像的轮廓，而固定阈值的方法就不行
+		函数原型: void adaptiveThreshold(InputArray src, OutputArray dst, double maxValue, int adaptiveMethod, int thresholdType, int blockSize, double C)
+			nputArray src：源图像
+			OutputArray dst：输出图像，与源图像大小一致
+			int adaptiveMethod：在一个邻域内计算阈值所采用的算法，有两个取值，分别为 ADAPTIVE_THRESH_MEAN_C 和 ADAPTIVE_THRESH_GAUSSIAN_C 。
+			ADAPTIVE_THRESH_MEAN_C的计算方法是计算出领域的平均值再减去第七个参数double C的值
+			ADAPTIVE_THRESH_GAUSSIAN_C的计算方法是计算出领域的高斯均值再减去第七个参数double C的值
+			int thresholdType：这是阈值类型，只有两个取值，分别为 THRESH_BINARY 和THRESH_BINARY_INV  具体的请看官方的说明，这里不多做解释
+			int blockSize：adaptiveThreshold的计算单位是像素的邻域块，邻域块取多大，就由这个值作决定
+			double C：在对参数int adaptiveMethod的说明中，我已经说了这个参数的作用，从中可以看出，这个参数实际上是一个偏移值调整量
+
+
+	寻找图像轮廓 - void cv::findContours ( InputOutputArray image, OutputArrayOfArrays contours, OutputArray hierarchy, int mode, int method, Point   offset = Point() )
+				image:输入图像，图像必须为8-bit单通道图像，图像中的非零像素将被视为1，0像素保留其像素值，故加载图像后会自动转换为二值图像。我们同样可以使用cv::compare,cv::inRange,cv::threshold,cv::adaptiveThreshold,cv::Canny等函数来创建二值图像，，如果第四个参数为cv::RETR_CCOMP或cv::RETR_FLOODFILL，输入图像可以是32-bit整型图像(CV_32SC1)
+				contours:检测到的轮廓，每个轮廓都是以点向量的形式进行存储即使用point类型的vector表示
+				hierarchy:可选的输出向量(std::vector)，包含了图像的拓扑信息，作为轮廓数量的表示hierarchy包含了很多元素，每个轮廓contours[i]对应hierarchy中hierarchy[i][0]~hierarchy[i][3],分别表示后一个轮廓，前一个轮廓，父轮廓，内嵌轮廓的索引，如果没有对应项，则相应的hierarchy[i]设置为负数。
+				mode轮廓检索模式，可以通过cv::RetrievalModes()查看详细信息，如下 
+				RETR_EXTERNAL:表示只检测最外层轮廓，对所有轮廓设置hierarchy[i][2]=hierarchy[i][3]=-1
+				RETR_LIST:提取所有轮廓，并放置在list中，检测的轮廓不建立等级关系
+				RETR_CCOMP:提取所有轮廓，并将轮廓组织成双层结构(two-level hierarchy),顶层为连通域的外围边界，次层位内层边界
+				RETR_TREE:提取所有轮廓并重新建立网状轮廓结构
+				RETR_FLOODFILL：官网没有介绍，应该是漫水填充法 
+
+
+
+
+图像处理中概念
+
+	离散傅里叶变换
+	图像高频部分代表了图像的细节、纹理信息；低频代表了图像的轮廓信息。
+	低通-》模糊
+	高通-》锐化
+	腐蚀和膨胀是针对白色部分（高亮部分）而言的。膨胀就是对图像高亮部分进行“领域扩张”，效果图拥有比原图更大的高亮区域；腐蚀是原图中的高亮区域被蚕食，效果图拥有比原图更小的高亮区域。
+	开运算：先腐蚀再膨胀，用来消除小物体
+	闭运算：先膨胀再腐蚀，用于排除小型黑洞
+	形态学梯度：就是膨胀图与俯视图之差，用于保留物体的边缘轮廓。
+	顶帽：原图像与开运算图之差，用于分离比邻近点亮一些的斑块。
+	黑帽：闭运算与原图像之差，用于分离比邻近点暗一些的斑块。
+
+为什么直方图均衡化能有效增强图像
+	因为直方图均衡化处理之后，原来比较少像素的灰度会被分配到别的灰度去，像素相对集中， 处理后灰度范围变大，对比度变大，清晰度变大，所以能有效增强图像。
+	直方图均衡化是图像处理领域中利用图像直方图对对比度进行调整的方法。这种方法通常用来增加许多图像的局部对比度，尤其是当图像的有用数据的对比度相当接近的时候。通过这种方法，亮度可以更好地在直方图上分布。这样就可以用于增强局部的对比度而不影响整体的对比度，直方图均衡化通过有效地扩展常用的亮度来实现这种功能。
+
+	滤波处理分为两大类：线性滤波和非线性滤波
+	线性滤波：方框滤波、均值滤波、高斯滤波
+	方框滤波 - boxFilter(img, out, -1, Size(5, 5))
+	均值滤波
+		均值滤波就是方框滤波的一个特殊情况,均值滤波的缺点就是不能很好地保护细节，在图像去燥的同时也破坏了图像的而细节部分，从而使图像变得模糊，不能很好的去除噪点
+	高斯滤波
+		高斯滤波，可以消除高斯噪声，广泛应用于图像处理的减噪过程
+
+	非线性滤波：中值滤波、双边滤波
+	中值滤波
+		基本思想就是用像素点的领域灰度的中值来代替该像素点的灰度值，该方法在去除脉冲噪声、椒盐噪声的同时又能保留图像的细节（不会出现边缘模糊的情况）。
+	中值滤波跟均值滤波的思想看起来很相似，只是一个取平均值，一个取中位数而已
+	现在说说中值滤波与均值滤波的比较：均值滤波中噪声成分会被加入到平均计算，所以输出是受到噪声的影响的。但是中值滤波中，由于噪声成分很难选上，所以基本不影响输出。当然好的性能也需要付出一点代价的，中值滤波花费的时间是均值滤波的5倍以上。 中值滤波一般采用奇数的卷积核。 中值滤波对一些细节多（特别是细、尖顶的）的图像不太适合。
+	双边滤波
+		双边滤波的最大特点就是做边缘保存
+
+	边缘检测（canny、sobel、laplacian）
+	边缘检测的一般步骤：
+    		滤波——消除噪声
+		增强——使边界轮廓更加明显
+		检测——选出边缘点
+
+	霍夫变换
+		霍夫线变换是一种在图像中寻找直线的方法。OpenCV中支持三种霍夫线变换，分别是标准霍夫线变换、多尺度霍夫线变换、累计概率霍夫线变换。
+		在OpenCV中可以调用函数HoughLines来调用标准霍夫线变换和多尺度霍夫线变换。HoughLinesP函数用于调用累积概率霍夫线变换。
+		我们都知道，二维坐标轴上表示一条直线的方程式y = a*x + b，我们想求出一条直线就得想方设法求出其中的a和b的值。如果用极坐标来表示就是
+		theta就是直线与水平线所成的角度，而rho就是圆的半径（也可以理解为原点到直线的距离），同样地，这两个参数也是表征一条直线的重要参数，确定他们俩了，也就确定一条直线了
+
+		HoughLines(midImage, lines, 1, CV_PI / 180, 150, 0, 0);
+    			//这里注意第五个参数，表示阈值，阈值越大，表明检测的越精准，速度越快，得到的直线越少（得到的直线都是很有把握的直线）
+			//这里得到的lines是包含rho和theta的，而不包括直线上的点，所以下面需要根据得到的rho和theta来建立一条直线
+		//与HoughLines不同的是，HoughLinesP得到lines的是含有直线上点的坐标的，所以下面进行划线时就不再需要自己求出两个点来确定唯一的直线了
+
+		HoughLinesP(midImage, lines, 1, CV_PI / 180, 80, 50, 10);//注意第五个参数，为阈值
+
+		//【4】进行霍夫圆变换  
+    		vector<Vec3f> circles;
+    		HoughCircles(midImage, circles, CV_HOUGH_GRADIENT, 1.5, 10, 200, 150, 0, 0); //注意第七的参数为阈值，可以自行调整，值越大，检测的圆更精准
+
+	模板匹配 - matchTemplate(image, templ, method[, result[, mask]]) -> result
+		image 参数表示待搜索源图像，必须是8位整数或32位浮点。
+		templ 参数表示模板图像，必须不大于源图像并具有相同的数据类型。
+		method 参数表示计算匹配程度的方法。
+			- TM_SQDIFF是平方差匹配; TM_SQDIFF_NORMED是标准平方差匹配 利用平方差来进行匹配,最好匹配为0.匹配越差,匹配值越大。所以这个函数和其他函数是不一样的
+			- TM_CCORR是相关性匹配；TM_CCORR_NORMED是标准相关性匹配;采用模板和图像间的乘法操作,数越大,越接近1表示匹配程度较高, 0表示最坏的匹配效果
+			- TM_CCOEFF是相关性系数匹配；TM_CCOEFF_NORMED是标准相关性系数匹配。将模版对其均值的相对值与图像对其均值的相关值进行匹配,1表示完美匹配,-1表示糟糕的匹配,0表示没有任何相关性(随机序列)
+		result 参数表示匹配结果图像，必须是单通道32位浮点。如果image的尺寸为W x H，templ的尺寸为w x h，则result的尺寸为(W-w+1)x(H-h+1)
+	相关函数 minMaxLoc （ //寻找矩阵(一维数组当作向量,用Mat定义) 中最小值和最大值的位置
+			InputArray src, //输入图像
+			double* minVal, //最小值，可以为0表示不要
+			double* maxVal=0, //最大值，可以为0表示不要
+			Point* minLoc=0, //最小值坐标
+			Point* maxLoc=0, //最大值坐标
+			const Mat& mask=Mat() //掩膜
+			）;
+	归一化 normalize函数
+			void normalize(InputArray src,OutputArray dst, double alpha=1, doublebeta=0, int norm_type=NORM_L2, int dtype=-1, InputArray mask=noArray() )
+			Parameters:
+
+				src  输入数组
+				dst 输出数组，支持原地运算
+				alpha range normalization模式的最小值
+				beta range normalization模式的最大值，不用于norm normalization(范数归一化)模式。
+				normType 归一化的类型，可以有以下的取值：
+					NORM_MINMAX:数组的数值被平移或缩放到一个指定的范围，线性归一化，一般较常用。
+					NORM_INF: 此类型的定义没有查到，根据OpenCV 1的对应项，可能是归一化数组的C-范数(绝对值的最大值)
+					NORM_L1 :  归一化数组的L1-范数(绝对值的和)
+					NORM_L2: 归一化数组的(欧几里德)L2-范数
+				dtype: 为负数时，输出数组的type与输入数组的type相同； 否则，输出数组与输入数组只是通道数相同，而tpye=CV_MAT_DEPTH(dtype).
+				mask: 操作掩膜，用于指示函数是否仅仅对指定的元素进行操作
+	createTrackbar函数详解
+		int createTrackbar(conststring& trackbarname, conststring& winname,
+ int* value, int count, TrackbarCallback onChange=0,void* userdata=0);
+		第一个参数，const string&类型的trackbarname，表示轨迹条的名字，用来代表我们创建的轨迹条。
+		第二个参数，const string&类型的winname，填窗口的名字，表示这个轨迹条会依附到哪个窗口上，即对应namedWindow（）创建窗口时填的某一个窗口名。
+		第三个参数，int* 类型的value，一个指向整型的指针，表示滑块的位置。并且在创建时，滑块的初始位置就是该变量当前的值。
+		第四个参数，int类型的count，表示滑块可以达到的最大位置的值。PS:滑块最小的位置的值始终为0。
+		第五个参数，TrackbarCallback类型的onChange，首先注意他有默认值0。这是一个指向回调函数的指针，每次滑块位置改变时，这个函数都会进行回调。并且这个函数的原型必须为void XXXX(int,void*);其中第一个参数是轨迹条的位置，第二个参数是用户数据（看下面的第六个参数）。如果回调是NULL指针，表示没有回调函数的调用，仅第三个参数value有变化。
+		第六个参数，void*类型的userdata，他也有默认值0。这个参数是用户传给回调函数的数据，用来处理轨迹条事件。如果使用的第三个参数value实参是全局变量的话，完全可以不去管这个userdata参数。
+
+	图像修复 - inpaint
+		void inpaint( InputArray src, InputArray inpaintMask, OutputArray dst, double inpaintRadius, int flags );
+			第一个参数src，输入的单通道或三通道图像；
+			第二个参数inpaintMask，图像的掩码，单通道图像，大小跟原图像一致，inpaintMask图像上除了需要修复的部分之外其他部分的像素值全部为0；
+			第三个参数dst，输出的经过修复的图像；
+			第四个参数inpaintRadius，修复算法取的邻域半径，用于计算当前像素点的差值；
+			第五个参数flags，修复算法，有两种：INPAINT_NS 和I NPAINT_TELEA；
+			函数实现关键是图像掩码的确定，可以通过阈值筛选或者手工选定，按照这个思路，用三种方法生成掩码，对比图像修复的效果。

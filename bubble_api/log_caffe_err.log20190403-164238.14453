@@ -1,0 +1,13 @@
+Log file created at: 2019/04/03 16:42:38
+Running on machine: bruce
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0403 16:42:38.330752 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.342200 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.352229 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.362542 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.372210 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.381309 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.391038 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.400485 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.409564 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
+W0403 16:42:38.418763 14453 memory_data_layer.cpp:90] MemoryData does not transform array data on Reset()
