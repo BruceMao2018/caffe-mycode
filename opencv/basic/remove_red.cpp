@@ -26,14 +26,34 @@ int main(int argc, char **argv)
 	threshold(channels[2], channels[2], th, 255, CV_THRESH_BINARY);
 	imshow("红色通道二值化", channels[2]);
 
+/*
+	Mat red_img = Mat::zeros(src.size(), CV_8UC1);
+	red_img.setTo(255);
+	//Mat red_img = channels[2];
+	//Mat red_img = src;
+	for( int i = 0; i < red_img.rows; i++)
+	{
+		//uchar *ptr = red_img.ptr<uchar>(i);
+		for( int j = 0; j < red_img.cols; j++)
+		{
+			cout << red_img.at<uchar>(i, j);
+			//cout << " " << red_img.at<Vec3b>(i, j)[1];
+			//cout << " " << red_img.at<Vec3b>(i, j)[2];
+		}
+		cout << endl;
+	}
+	//imshow("red_img", red_img);
+*/
+
 	Mat img3, img4, img5;
 	src.copyTo(img3, channels[0]);
 	src.copyTo(img4, channels[1]);
 	src.copyTo(img5, channels[2]);
 
-	//imshow("最终图片0", img3);
-	//imshow("最终图片1", img4);
-	//imshow("最终图片2", img5);
+
+	imshow("Blue+Bin", img3);
+	imshow("Green+Bin", img4);
+	imshow("Red+Bin", img5);
 
 	waitKey(0);
 	return 0;

@@ -20,7 +20,7 @@ opencv 基本数据结构:
 		构造函数 cv::Mat::Mat(Size size,int type )
 			 cv::Mat::Mat(int ndims,const int *  sizes,int type,const Scalar& s)
 		at成员函数
-			int elem = img.at<int>(0, 0);
+			int elem = img.at<int>(0, 0);//注意：at函数()中的参数值是先行，后列，即(row, col),对应坐标值为先y，后x，即(y, x)
 		channels函数
 			int cv::Mat::channels   ()  const
 		clone函数

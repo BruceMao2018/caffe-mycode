@@ -19,10 +19,10 @@ int main(int argc, char **argv)
 	imshow("灰度化后图", srcGray);
 
 	vector<vector<Point>> contours;
-	int thre = 50;
-	int total = 200;
-	int min = 20;
-	int max = 40;
+	int thre = 80;
+	int total = 1;
+	int min = 5;
+	int max = 10;
 while(total--)
 {
 	contours.clear();
@@ -88,6 +88,9 @@ imshow("旋转矩形标识before", RatationedImg);
 	double angle = rRect.angle;
 	cout << "angle: " << angle << endl;
 
+	cout << "center of Rect: " << " x-" << rRect.center.x << " y-" << rRect.center.y << endl;
+	//cout << "center of srcImge: " << " x-" << srcImg.cols/2 << " y-" << srcImg.cols/2 << endl;
+
 	Point2f pnt[4];
         rRect.points(pnt); //将旋转矩形的4个点存入到数组
         for (int i = 0; i < 4; i++)
@@ -95,12 +98,17 @@ imshow("旋转矩形标识before", RatationedImg);
 
 	imshow("旋转矩形标识", RatationedImg);
 
+	//Mat roi_map = srcImg(rRect); error-只能是正矩形,不能是选择矩形
+	//imshow("roi_map", roi_map);
+
 	//进行仿射变换
 	Point2f center = rRect.center;  //中心点
+	if( angle < 0 ) angle += 90;
 	Mat M2 = getRotationMatrix2D(center, angle, 1);//计算旋转加缩放的变换矩阵
 	warpAffine(srcImg, RatationedImg, M2, srcImg.size(),1, 0, Scalar(0));//仿射变换
 
 	imshow("矫正后图片", RatationedImg);
+
 
 	waitKey(0);
 	return 0;

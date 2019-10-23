@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 
 Mat addSaltNoise(const Mat srcImage, int n);
-Mat addGaussianNoise(Mat &srcImage);
+Mat addGaussianNoise(const Mat &srcImage);
 double generateGaussianNoise(double m, double sigma);
 
 int main(int argc, char **argv)
@@ -14,6 +14,8 @@ int main(int argc, char **argv)
 
 	Mat image = imread("test2.png");
 	imshow("原图", image);
+
+	srand((int)time(0));//产生随机种子，否则rand()在程序每次运行时的值都与上一次一样,此srand改变的是整个程序的随机种子，可作用于下面调用的子函数
 
 	Mat dstImage = addSaltNoise(image, 3000);
 	imshow("添加椒盐噪声的效果图", dstImage);
